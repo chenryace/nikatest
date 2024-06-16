@@ -196,5 +196,3 @@ document.querySelectorAll('.dropzone').forEach(dropzone => {
 });
 
 renderTodos();
-
-</script>
