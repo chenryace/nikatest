@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Todo List</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js"></script>
+    <!-- 引入旧版 Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
 </head>
 <body>
     <div class="container">
@@ -54,6 +55,7 @@
             appId: "1:1011317445864:web:836ac64bfe7f4fb403655d"
         };
 
+        // 初始化 Firebase 应用
         firebase.initializeApp(firebaseConfig);
 
         const db = firebase.database();
@@ -69,6 +71,16 @@
 
         let highPriority = false;
         let draggedItem = null;
+
+        const highPriorityButton = document.getElementById('high-priority-button');
+        const addButton = document.getElementById('add-button');
+        const selectAllButton = document.getElementById('select-all-button');
+        const clearSelectedButton = document.getElementById('clear-selected-button');
+        const todoList = document.querySelector('#todo-list .task-list');
+        const inProgressList = document.querySelector('#in-progress-list .task-list');
+        const completedList = document.querySelector('#completed-list .task-list');
+        const todoTitleInput = document.getElementById('todo-title-input');
+        const todoContentInput = document.getElementById('todo-content-input');
 
         highPriorityButton.addEventListener('click', () => {
             highPriority = !highPriority;
@@ -246,3 +258,4 @@
     </script>
 </body>
 </html>
+
