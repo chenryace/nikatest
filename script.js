@@ -1,198 +1,62 @@
-const todoTitleInput = document.getElementById('todo-title-input');
-const todoContentInput = document.getElementById('todo-content-input');
-const highPriorityButton = document.getElementById('high-priority-button');
-const addButton = document.getElementById('add-button');
-const selectAllButton = document.getElementById('select-all-button');
-const clearSelectedButton = document.getElementById('clear-selected-button');
-const todoList = document.querySelector('#todo-list .task-list');
-const inProgressList = document.querySelector('#in-progress-list .task-list');
-const completedList = document.querySelector('#completed-list .task-list');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Todo List</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Todo List</h1>
+        
+        <div class="list-container">
+            <div id="todo-list" class="dropzone">
+                <div class="box-title">任务初建</div>
+                <ul id="todo-tasks" class="task-list"></ul>
+            </div>
+            <div id="in-progress-list" class="dropzone">
+                <div class="box-title">任务进行中</div>
+                <ul id="in-progress-tasks" class="task-list"></ul>
+            </div>
+            <div id="completed-list" class="dropzone">
+                <div class="box-title">任务完成</div>
+                <ul id="completed-tasks" class="task-list"></ul>
+            </div>
+        </div>
 
-let todos = [];
+        <div class="controls">
+            <div class="input-container">
+                <input id="todo-title-input" type="text" placeholder="任务标题">
+                <textarea id="todo-content-input" placeholder="任务内容"></textarea>
+            </div>
+            <div class="button-container">
+                <button id="high-priority-button" class="high-priority-button">高优先级</button>
+                <button id="add-button">添加任务</button>
+                <button id="select-all-button">全选</button>
+                <button id="clear-selected-button">清除选定</button>
+                <button id="delete-button" class="delete-button">删除</button>
+            </div>
+        </div>
+    </div>
 
-// 获取 Firebase 数据
-const todosRef = db.ref('todos');
+    <!-- Firebase 初始化 -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbVooTJqSk0uoFJnuS0kq8TyMWKXHeygE",
+            authDomain: "nika-7a413.firebaseapp.com",
+            projectId: "nika-7a413",
+            storageBucket: "nika-7a413.appspot.com",
+            messagingSenderId: "1011317445864",
+            appId: "1:1011317445864:web:836ac64bfe7f4fb403655d"
+        };
 
-// 监听 Firebase 数据变化
-todosRef.on('value', (snapshot) => {
-  todos = snapshot.val() || [];
-  renderTodos();
-});
+        firebase.initializeApp(firebaseConfig);
+    </script>
 
-let highPriority = false;
-let draggedItem = null;
-
-highPriorityButton.addEventListener('click', () => {
-  highPriority = !highPriority;
-  highPriorityButton.style.backgroundColor = highPriority ? '#f44336' : '#4CAF50';
-});
-
-function saveTodos() {
-  todosRef.set(todos); // 保存到 Firebase 数据库
-}
-
-function createTodoElement(todo, index) {
-  const li = document.createElement('li');
-  li.className = 'todo-item';
-  li.draggable = true;
-  li.dataset.index = index;
-
-  li.addEventListener('dragstart', () => {
-    draggedItem = li;
-    setTimeout(() => {
-      li.style.display = 'none';
-    }, 0);
-  });
-
-  li.addEventListener('dragend', () => {
-    setTimeout(() => {
-      draggedItem.style.display = 'block';
-      draggedItem = null;
-      saveTodos();
-    }, 0);
-  });
-
-  li.addEventListener('dragover', e => {
-    e.preventDefault();
-    if (li !== draggedItem) {
-      const allItems = Array.from(li.parentNode.querySelectorAll('.todo-item'));
-      const currentPos = allItems.indexOf(draggedItem);
-      const newPos = allItems.indexOf(li);
-
-      if (currentPos < newPos) {
-        li.parentNode.insertBefore(draggedItem, li.nextSibling);
-      } else {
-        li.parentNode.insertBefore(draggedItem, li);
-      }
-    }
-  });
-
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.checked = todo.completed;
-  checkbox.addEventListener('change', () => {
-    todo.completed = checkbox.checked;
-    saveTodos();
-    renderTodos();
-  });
-
-  const title = document.createElement('div');
-  title.textContent = todo.title;
-  title.className = 'todo-item-title';
-  if (todo.priority === 'high') title.classList.add('high-priority');
-  title.contentEditable = true;
-  title.addEventListener('blur', () => {
-    todo.title = title.textContent;
-    saveTodos();
-  });
-
-  const content = document.createElement('div');
-  content.textContent = todo.content;
-  content.className = 'todo-item-content';
-  if (todo.completed) content.classList.add('completed');
-  content.contentEditable = true;
-  content.addEventListener('blur', () => {
-    todo.content = content.textContent;
-    saveTodos();
-  });
-
-  const deleteButton = document.createElement('button');
-  deleteButton.textContent = '删除';
-  deleteButton.addEventListener('click', () => {
-    todos.splice(index, 1);
-    saveTodos();
-    renderTodos();
-  });
-
-  const highButton = document.createElement('button');
-  highButton.textContent = '高优先级';
-  highButton.addEventListener('click', () => {
-    todo.priority = todo.priority === 'high' ? 'normal' : 'high';
-    saveTodos();
-    renderTodos();
-  });
-
-  li.append(checkbox, title, content, highButton, deleteButton);
-
-  return li;
-}
-
-function renderTodos() {
-  todoList.innerHTML = '';
-  inProgressList.innerHTML = '';
-  completedList.innerHTML = '';
-
-  todos.forEach((todo, index) => {
-    const todoElement = createTodoElement(todo, index);
-    if (!todo.completed && !todo.inProgress) {
-      todoList.appendChild(todoElement);
-    } else if (!todo.completed && todo.inProgress) {
-      inProgressList.appendChild(todoElement);
-    } else {
-      completedList.appendChild(todoElement);
-    }
-  });
-}
-
-addButton.addEventListener('click', () => {
-  const title = todoTitleInput.value.trim();
-  const content = todoContentInput.value.trim();
-
-  if (title === '' || content === '') {
-    alert('任务标题和内容不能为空');
-    return;
-  }
-
-  const todo = {
-    title,
-    content,
-    completed: false,
-    priority: highPriority ? 'high' : 'normal',
-    inProgress: false
-  };
-  todos.push(todo);
-  saveTodos();
-  todoTitleInput.value = '';
-  todoContentInput.value = '';
-  highPriority = false;
-  highPriorityButton.style.backgroundColor = '';
-  renderTodos();
-});
-
-selectAllButton.addEventListener('click', () => {
-  todos.forEach(todo => {
-    todo.completed = true;
-  });
-  saveTodos();
-  renderTodos();
-});
-
-clearSelectedButton.addEventListener('click', () => {
-  todos = todos.filter(todo => !todo.completed);
-  saveTodos();
-  renderTodos();
-});
-
-document.querySelectorAll('.dropzone').forEach(dropzone => {
-  dropzone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.style.backgroundColor = '#e0e0e0';
-  });
-
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.style.backgroundColor = '';
-  });
-
-  dropzone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropzone.style.backgroundColor = '';
-    const index = draggedItem.dataset.index;
-    todos[index].inProgress = dropzone.id === 'in-progress-list';
-    todos[index].completed = dropzone.id === 'completed-list';
-    saveTodos();
-    renderTodos();
-  });
-});
-
-renderTodos();
-</script>
+    <script src="script.js"></script>
+</body>
+</html>
