@@ -54,7 +54,12 @@
             appId: "1:1011317445864:web:836ac64bfe7f4fb403655d"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(app);
+        const auth = firebase.auth(app);
+
+        // Your JavaScript logic goes here (see script.js example for implementation)
     </script>
 
     <script src="script.js"></script>
